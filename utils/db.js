@@ -1,8 +1,8 @@
-import { MongoClient } from "mongodb";
+import { MongoClient } from 'mongodb';
 
-const host = process.env.DB_HOST || "localhost";
-const port = process.env.DB_PORT || "27017";
-const database = process.env.DB_DATABASE || "files_manager";
+const host = process.env.DB_HOST || 'localhost';
+const port = process.env.DB_PORT || '27017';
+const database = process.env.DB_DATABASE || 'files_manager';
 
 class DBClient {
   constructor() {
@@ -14,12 +14,15 @@ class DBClient {
   }
 
   isAlive() {
-    return this.db == null ? false : true;
+    if (this.db == null) {
+      return false;
+    }
+    return true;
   }
 
   async nbUsers() {
     return new Promise((resolve, reject) => {
-      const collection = this.db.collection("users");
+      const collection = this.db.collection('users');
       collection.find({}).toArray((err, docs) => {
         if (err) reject(err);
         resolve(docs.length);
@@ -29,7 +32,7 @@ class DBClient {
 
   async nbFiles() {
     return new Promise((resolve, reject) => {
-      const collection = this.db.collection("files");
+      const collection = this.db.collection('files');
       collection.find({}).toArray((err, docs) => {
         if (err) reject(err);
         resolve(docs.length);
