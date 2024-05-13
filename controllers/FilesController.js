@@ -1,5 +1,6 @@
 import path from 'path';
 import fs from 'fs';
+import { ObjectId } from 'mongodb';
 import { v4 as uuid4 } from 'uuid';
 import dbClient from '../utils/db';
 import redisClient from '../utils/redis';
@@ -30,7 +31,9 @@ class FilesController {
     }
     const filesCollection = dbClient.db.collection('files');
     if (parentId) {
-      const parentFile = await filesCollection.findOne({ _id: parentId });
+      const parentFile = await filesCollection.findOne({
+        _id: ObjectId(parentId),
+      });
       if (!parentFile) {
         return res.status(400).json({ error: 'Parent not found' });
       }
@@ -46,10 +49,12 @@ class FilesController {
         isPublic: isPublic || false,
         parentId: parentId || 0,
       };
-      const folderStored = await filesCollection.insertOne(folderData);
+
+      const folderStored = await filesCollection.insertOne({ ...folderData });
+      console.log(folderData);
       return res
         .status(201)
-        .json({ id: folderStored.insertedId, ...folderStored });
+        .json({ id: folderStored.insertedId, ...folderData });
     }
     const localPath = process.env.FOLDER_PATH;
     const localFolder = localPath
