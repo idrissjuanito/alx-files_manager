@@ -37,7 +37,6 @@ class FilesController {
           {
             $project: {
               id: '$_id',
-              _id: 0,
               userId: 1,
               name: 1,
               type: 1,
@@ -46,7 +45,7 @@ class FilesController {
             },
           },
           {
-            $unset: 'localPath',
+            $unset: ['_id', 'localPath'],
           },
         ])
         .toArray();
