@@ -1,5 +1,6 @@
 import path from 'path';
 import fs from 'fs';
+import mime from 'mime-types';
 import { ObjectId } from 'mongodb';
 import { v4 as uuid4 } from 'uuid';
 import dbClient from '../utils/db';
@@ -128,10 +129,10 @@ class FilesController {
       : '/tmp/files_manager';
     if (!fs.existsSync(localFolder)) fs.mkdirSync(localFolder);
     const localFilePath = path.join(localFolder, uuid4());
-    fs.writeFileSync(
-      localFilePath,
-      Buffer.from(data, 'base64').toString('utf-8'),
-    );
+    const fileBytes = Buffer.from(data, 'base64');
+    // prettier-ignore
+    const fileContent = type === 'file' ? fileBytes.toString('utf-8') : fileBytes;
+    fs.writeFileSync(localFilePath, fileContent);
     const newFileData = {
       userId,
       name,
@@ -185,6 +186,31 @@ class FilesController {
     } catch (err) {
       return res.status(404).json({ error: 'Not found' });
     }
+  }
+
+  static async getFile(req, res) {
+    const { id } = req.params;
+    const file = await dbClient.db
+      .collection('files')
+      .findOne({ _id: ObjectId(id) });
+    const { userId } = res.locals;
+    if (!file) return res.status(404).json({ error: 'Not found' });
+    if (!file.isPublic && (!userId || userId !== file.userId)) {
+      return res.status(404).json({ error: 'Not found' });
+    }
+    if (file.type === 'folder') {
+      return res.status(400).json({ error: "A folder doesn't have content" });
+    }
+    if (!fs.existsSync(file.localPath)) {
+      return res.status(404).json({ error: 'Not found' });
+    }
+    const mimeType = mime.lookup(file.name);
+    // const fileData = fs.readFileSync(
+    //   file.localPath,
+    //   mimeType.includes('text') ? 'utf-8' : '',
+    // );
+    res.type(mimeType);
+    return res.sendFile(file.localPath);
   }
 }
 
