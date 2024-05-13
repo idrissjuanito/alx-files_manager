@@ -118,7 +118,6 @@ class FilesController {
       };
 
       const folderStored = await filesCollection.insertOne({ ...folderData });
-      console.log(folderData);
       return res
         .status(201)
         .json({ id: folderStored.insertedId, ...folderData });
