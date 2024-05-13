@@ -171,20 +171,21 @@ class FilesController {
     const { id } = req.params;
     const filesCollection = dbClient.db.collection('files');
     const { userId } = res.locals;
-    const file = await filesCollection.findOne({
-      $and: [{ userId }, { _id: ObjectId(id) }],
-    });
-    if (!file) return res.status(404).json({ error: 'Not found' });
-    const { _id, localPath, ...rest } = file;
-    if (!file.isPublic) return res.json({ id: _id, ...rest });
-    const result = await filesCollection.updateOne(
-      { _id: file._id },
-      { $set: { isPublic: false } },
-    );
-    if (result.modifiedCount !== 1) {
-      return res.status(500).json({ error: 'Something went wrong' });
+    try {
+      const file = await filesCollection.findOne({
+        $and: [{ userId }, { _id: ObjectId(id) }],
+      });
+      if (!file) return res.status(404).json({ error: 'Not found' });
+      const { _id, localPath, ...rest } = file;
+      if (!file.isPublic) return res.json({ id: _id, ...rest });
+      await filesCollection.updateOne(
+        { _id: file._id },
+        { $set: { isPublic: false } },
+      );
+      return res.json({ id: _id, ...rest, isPublic: false });
+    } catch (err) {
+      return res.status(404).json({ error: 'Not found' });
     }
-    return res.json({ id: _id, ...rest, isPublic: false });
   }
 }
 
