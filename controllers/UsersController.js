@@ -24,15 +24,11 @@ class UsersController {
         }
         return (async () => {
           const users = dbClient.db.collection('users');
-          try {
-            const user = await users.findOne({ _id: ObjectId(userId) });
-            if (!user) {
-              return reject(res.status(401).json({ error: 'Unauthorized' }));
-            }
-            return resolve(res.json({ id: userId, email: user.email }));
-          } catch (err) {
-            return reject(res.status(500).send());
+          const user = await users.findOne({ _id: ObjectId(userId) });
+          if (!user) {
+            return reject(res.status(401).json({ error: 'Unauthorized' }));
           }
+          return resolve(res.json({ id: userId, email: user.email }));
         })();
       });
     });
