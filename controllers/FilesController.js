@@ -8,10 +8,8 @@ import redisClient from '../utils/redis';
 class FilesController {
   static async getShow(req, res) {
     const { id } = req.params;
-    const token = req.get('X-Token');
-    const userId = await redisClient.get(`auth_${token}`);
-    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
     const filesCollection = dbClient.db.collection('files');
+    const { userId } = res.locals;
     const file = await filesCollection.findOne({
       $and: [{ userId }, { _id: ObjectId(id) }],
     });
@@ -21,11 +19,6 @@ class FilesController {
   }
 
   static async getIndex(req, res) {
-    const token = req.get('X-Token');
-    const userId = await redisClient.get(`auth_${token}`);
-    if (!token || !userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
     let { parentId } = req.query;
     const { page } = req.query;
     const filesCollection = dbClient.db.collection('files');
@@ -86,11 +79,6 @@ class FilesController {
   }
 
   static async postUpload(req, res) {
-    const token = req.get('X-Token');
-    const userId = await redisClient.get(`auth_${token}`);
-    if (!token || !userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
     const {
       // prettier-ignore
       name,
@@ -120,6 +108,7 @@ class FilesController {
         return res.status(400).json({ error: 'Parent is not a folder' });
       }
     }
+    const { userId } = res.locals;
     if (type === 'folder') {
       const folderData = {
         userId,
