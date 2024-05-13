@@ -6,6 +6,86 @@ import dbClient from '../utils/db';
 import redisClient from '../utils/redis';
 
 class FilesController {
+  static async getShow(req, res) {
+    const { id } = req.params;
+    const token = req.get('X-Token');
+    const userId = await redisClient.get(`auth_${token}`);
+    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+    const filesCollection = dbClient.db.collection('files');
+    const file = await filesCollection.findOne({
+      $and: [{ userId }, { _id: ObjectId(id) }],
+    });
+    if (!file) return res.status(404).json({ error: 'Not found' });
+    const { _id, localPath, ...rest } = file;
+    return res.json({ id: _id, ...rest });
+  }
+
+  static async getIndex(req, res) {
+    const token = req.get('X-Token');
+    const userId = await redisClient.get(`auth_${token}`);
+    if (!token || !userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    let { parentId } = req.query;
+    const { page } = req.query;
+    const filesCollection = dbClient.db.collection('files');
+    if (parentId === undefined) {
+      const files = await filesCollection
+        .aggregate([
+          { $skip: (page || 0) * 20 },
+          { $limit: 20 },
+          {
+            $project: {
+              id: '$_id',
+              _id: 0,
+              userId: 1,
+              name: 1,
+              type: 1,
+              isPublic: 1,
+              parentId: 1,
+            },
+          },
+          {
+            $unset: 'localPath',
+          },
+        ])
+        .toArray();
+      return res.json(files);
+    }
+    if (parentId !== '0') {
+      const count = await filesCollection.countDocuments({
+        $and: [{ type: 'folder' }, { _id: ObjectId(parentId) }],
+      });
+      if (count === 0) return res.json([]);
+    }
+    if (parentId === '0') {
+      parentId = 0;
+    }
+    const files = await filesCollection
+      .aggregate([
+        { $match: { parentId } },
+        { $skip: (page || 0) * 20 },
+        { $limit: 20 },
+        {
+          $project: {
+            id: '$_id',
+            _id: 0,
+            userId: 1,
+            name: 1,
+            type: 1,
+            isPublic: 1,
+            parentId: 1,
+          },
+        },
+        {
+          $unset: 'localPath',
+        },
+      ])
+      .toArray();
+
+    return res.json(files);
+  }
+
   static async postUpload(req, res) {
     const token = req.get('X-Token');
     const userId = await redisClient.get(`auth_${token}`);
