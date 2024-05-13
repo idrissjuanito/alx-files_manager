@@ -23,7 +23,7 @@ class AuthController {
     const token = req.get('X-Token');
     const userId = await redisClient.get(`auth_${token}`);
     const usersCollection = dbClient.db.collection('users');
-    const user = await usersCollection.find({ _id: userId });
+    const user = await usersCollection.findOne({ _id: userId });
     if (!user) return res.status(401).json({ error: 'Unauthorized' });
     await redisClient.del(`auth_${token}`);
     return res.status(204).send();
