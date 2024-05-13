@@ -11,6 +11,9 @@ class AuthController {
     const [email, password] = Buffer.from(base64Header.split(' ')[1], 'base64')
       .toString('ascii')
       .split(':');
+    if (!email || !password) {
+      if (!base64Header) return res.status(401).json({ error: 'Unauthorized' });
+    }
     const usersCollection = dbClient.db.collection('users');
     const user = await usersCollection.findOne({
       $and: [{ email }, { password: sha1(password) }],
