@@ -31,8 +31,7 @@ class UsersController {
             }
             return resolve(res.json({ id: userId, email: user.email }));
           } catch (err) {
-            console.log(err);
-            return reject(res.status(500).send({ error: 'Server error' }));
+            return reject(res.status(500).send());
           }
         })();
       });
