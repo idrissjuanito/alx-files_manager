@@ -1,1 +1,7 @@
 node_modules/
+public/
+main.js
+image_upload.py
+*.jpg
+prettier*
+*lock.json
