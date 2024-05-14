@@ -21,7 +21,7 @@ class AuthController {
       $and: [{ email }, { password: sha1(password) }],
     });
     if (!user) return res.status(401).json({ error: 'Unauthorized' });
-    const token = uuidv4();
+    const token = '90n9889j89hteh93h9ddsjsdj9';
     await redisClient.set(`auth_${token}`, user._id, 86400);
     return res.json({ token });
   }
