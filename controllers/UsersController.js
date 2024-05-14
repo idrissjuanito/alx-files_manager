@@ -11,7 +11,7 @@ class UsersController {
     if (!password) return res.status(400).json({ error: 'Missing password' });
     const collection = dbClient.db.collection('users');
     let user = await collection.findOne({ email });
-    if (!user) return res.status(400).json({ error: 'Already exist' });
+    if (user) return res.status(400).json({ error: 'Already exist' });
     user = await collection.insertOne({ email, password: sha1(password) });
     userQueue.add({ userId: user.insertedId });
 
