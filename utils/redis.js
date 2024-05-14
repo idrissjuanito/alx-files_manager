@@ -8,9 +8,7 @@ class RedisClient {
   }
 
   isAlive() {
-    // const listener = promisify(this.client.on).bind(this.client);
-    // listener("connect").then((state) => console.log(state));
-    return true;
+    return this.client.connected;
   }
 
   async get(key) {

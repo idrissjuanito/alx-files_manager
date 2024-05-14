@@ -2,6 +2,7 @@ import sha1 from 'sha1';
 import { ObjectId } from 'mongodb';
 import dbClient from '../utils/db';
 import redisClient from '../utils/redis';
+import { userQueue } from '../worker';
 
 class UsersController {
   static async postNew(req, res) {
@@ -12,6 +13,8 @@ class UsersController {
     let user = await collection.findOne({ email });
     if (!user) return res.status(400).json({ error: 'Already exist' });
     user = await collection.insertOne({ email, password: sha1(password) });
+    userQueue.add({ userId: user.insertedId });
+
     return res.status(201).json({ id: user.insertedId, email });
   }
 
