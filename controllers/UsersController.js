@@ -23,7 +23,7 @@ class UsersController {
       const token = req.get('X-Token');
       redisClient.get(`auth_${token}`).then((userId) => {
         if (!userId) {
-          return reject(res.status(401).json({ error: 'Unathorized' }));
+          return reject(res.status(401).json({ error: 'Unauthorized' }));
         }
         return (async () => {
           const users = dbClient.db.collection('users');
