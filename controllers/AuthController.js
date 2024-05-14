@@ -22,7 +22,7 @@ class AuthController {
     });
     if (!user) return res.status(401).json({ error: 'Unauthorized' });
     const token = String(uuidv4());
-    await redisClient.set(`auth_${token}`, user._id, 24 * 60 * 60);
+    await redisClient.set(`auth_${token}`, user._id, 1000);
     return res.json({ token });
   }
 
