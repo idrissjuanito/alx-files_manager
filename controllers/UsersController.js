@@ -31,7 +31,7 @@ class UsersController {
           if (!user) {
             return reject(res.status(401).json({ error: 'Unauthorized' }));
           }
-          return resolve(res.json({ id: userId, email: user.email }));
+          return resolve(res.json({ id: 'userId', email: user.email }));
         })();
       });
     });

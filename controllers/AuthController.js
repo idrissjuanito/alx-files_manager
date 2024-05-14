@@ -10,7 +10,7 @@ class AuthController {
     if (!base64Header || !base64Header.startsWith('Basic ')) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
-    const [email, password] = Buffer.from(base64Header.split('')[1], 'base64')
+    const [email, password] = Buffer.from(base64Header.split(' ')[1], 'base64')
       .toString('utf8')
       .split(':');
     if (!email || !password) {
