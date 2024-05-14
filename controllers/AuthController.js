@@ -1,6 +1,6 @@
 import sha1 from 'sha1';
 import { v4 as uuidv4 } from 'uuid';
-// import { ObjectId } from 'mongodb';
+import { ObjectId } from 'mongodb';
 import dbClient from '../utils/db';
 import redisClient from '../utils/redis';
 
@@ -10,7 +10,7 @@ class AuthController {
     if (!base64Header || !base64Header.startsWith('Basic ')) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
-    const [email, password] = Buffer.from(base64Header.split(' ')[1], 'base64')
+    const [email, password] = Buffer.from(base64Header.split('')[1], 'base64')
       .toString('utf8')
       .split(':');
     if (!email || !password) {
@@ -21,7 +21,7 @@ class AuthController {
       $and: [{ email }, { password: sha1(password) }],
     });
     if (!user) return res.status(401).json({ error: 'Unauthorized' });
-    const token = '90n9889j89hteh93h9ddsjsdj9';
+    const token = uuidv4();
     await redisClient.set(`auth_${token}`, user._id, 86400);
     return res.json({ token });
   }
@@ -30,8 +30,8 @@ class AuthController {
     const token = req.get('X-Token');
     const userId = await redisClient.get(`auth_${token}`);
     if (!userId) return res.status(401).json({ error: 'Unauthorized' });
-    // const usersCollection = dbClient.db.collection('users');
-    // await usersCollection.findOne({ _id: ObjectId(userId) });
+    const usersCollection = dbClient.db.collection('users');
+    await usersCollection.findOne({ _id: ObjectId(userId) });
     await redisClient.del(`auth_${token}`);
     // if (!user) return res.status(401).json({ error: 'Unathorized' });
     return res.sendStatus(204);
