@@ -1,5 +1,5 @@
 import sha1 from 'sha1';
-import { v4 as uuid4 } from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 import { ObjectId } from 'mongodb';
 import dbClient from '../utils/db';
 import redisClient from '../utils/redis';
@@ -11,7 +11,7 @@ class AuthController {
       return res.status(401).json({ error: 'Unauthorized' });
     }
     const [email, password] = Buffer.from(base64Header.split(' ')[1], 'base64')
-      .toString('ascii')
+      .toString('utf8')
       .split(':');
     if (!email || !password) {
       if (!base64Header) return res.status(401).json({ error: 'Unauthorized' });
@@ -21,7 +21,7 @@ class AuthController {
       $and: [{ email }, { password: sha1(password) }],
     });
     if (!user) return res.status(401).json({ error: 'Unauthorized' });
-    const token = uuid4();
+    const token = String(uuidv4());
     await redisClient.set(`auth_${token}`, user._id, 24 * 60 * 60);
     return res.json({ token });
   }
