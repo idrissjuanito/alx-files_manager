@@ -1,7 +1,6 @@
 node_modules/
+image_upload.py
 public/
 main.js
-image_upload.py
 *.jpg
-prettier*
-*lock.json
+*.png
