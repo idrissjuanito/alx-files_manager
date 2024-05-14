@@ -7,7 +7,9 @@ import redisClient from '../utils/redis';
 class AuthController {
   static async getConnect(req, res) {
     const base64Header = req.get('Authorization');
-    if (!base64Header) return res.status(401).json({ error: 'Unauthorized' });
+    if (!base64Header || !base64Header.startsWith('Basic ')) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
     const [email, password] = Buffer.from(base64Header.split(' ')[1], 'base64')
       .toString('ascii')
       .split(':');
@@ -32,7 +34,7 @@ class AuthController {
     const user = await usersCollection.findOne({ _id: ObjectId(userId) });
     if (!user) return res.status(401).json({ error: 'Unauthorized' });
     await redisClient.del(`auth_${token}`);
-    return res.status(204).send();
+    return res.sendStatus(204);
   }
 }
 
