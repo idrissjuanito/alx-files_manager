@@ -5,7 +5,7 @@ const authMiddleware = async (req, res, next) => {
   const userId = await redisClient.get(`auth_${token}`);
   res.locals.userId = userId;
   if (!userId) {
-    if (req.url.endsWith('data')) return next();
+    if (req.url.includes('/data')) return next();
     return res.status(401).json({ error: 'Unauthorized' });
   }
   return next();

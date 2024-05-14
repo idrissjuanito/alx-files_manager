@@ -4,6 +4,7 @@ import mime from 'mime-types';
 import { ObjectId } from 'mongodb';
 import { v4 as uuid4 } from 'uuid';
 import dbClient from '../utils/db';
+import fileQueue from '../worker';
 
 class FilesController {
   static async getShow(req, res) {
@@ -144,6 +145,9 @@ class FilesController {
       ...newFileData,
       localPath: localFilePath,
     });
+    if (type === 'image') {
+      fileQueue.add({ fileId: newFile.insertedId, userId });
+    }
     return res.status(201).json({ id: newFile.insertedId, ...newFileData });
   }
 
@@ -190,6 +194,7 @@ class FilesController {
 
   static async getFile(req, res) {
     const { id } = req.params;
+    const { size } = req.query;
     const file = await dbClient.db
       .collection('files')
       .findOne({ _id: ObjectId(id) });
@@ -201,16 +206,13 @@ class FilesController {
     if (file.type === 'folder') {
       return res.status(400).json({ error: "A folder doesn't have content" });
     }
-    if (!fs.existsSync(file.localPath)) {
+    const localFilePath = size ? `${file.localPath}_${size}` : file.localPath;
+    if (!fs.existsSync(localFilePath)) {
       return res.status(404).json({ error: 'Not found' });
     }
     const mimeType = mime.lookup(file.name);
-    // const fileData = fs.readFileSync(
-    //   file.localPath,
-    //   mimeType.includes('text') ? 'utf-8' : '',
-    // );
     res.type(mimeType);
-    return res.sendFile(file.localPath);
+    return res.sendFile(localFilePath);
   }
 }
 
