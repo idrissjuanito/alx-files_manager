@@ -32,8 +32,8 @@ class AuthController {
     if (!userId) return res.status(401).json({ error: 'Unauthorized' });
     const usersCollection = dbClient.db.collection('users');
     const user = await usersCollection.findOne({ _id: ObjectId(userId) });
-    if (!user) return res.status(401).json({ error: 'Unauthorized' });
     await redisClient.del(`auth_${token}`);
+    if (!user) return res.status(401).json({ error: 'Unauthorized' });
     return res.sendStatus(204);
   }
 }
